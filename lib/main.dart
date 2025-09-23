@@ -1,10 +1,7 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-// 1. Ganti import SplashScreen dengan AuthGate
-import 'package:lifeline/auth_gate.dart';
+import 'package:lifeline/screens/splash_screen.dart'; // <-- Kembali ke Splash Screen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,8 +22,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      // 2. Ubah home menjadi AuthGate()
-      home: const AuthGate(),
+      home: SplashScreen(), // <-- Kembali ke Splash Screen
       debugShowCheckedModeBanner: false,
     );
   }

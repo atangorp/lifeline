@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lifeline/screens/home_screen.dart'; // Pastikan import ini ada
 
 class RegisterScreen extends StatefulWidget {
   final Function()? onTap;
@@ -16,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _register() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -25,18 +27,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // >> TAMBAHKAN NAVIGASI MANUAL DI SINI JUGA <<
+      // Setelah daftar berhasil, pengguna otomatis login.
+      // Langsung paksa pindah ke HomeScreen.
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(
+              email: _emailController.text.trim(),
+            ),
+          ),
+          (route) => false,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Registrasi Gagal: ${e.message}')),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
   
+  // ... sisa kode build() dan dispose() tetap sama persis ...
   @override
   void dispose() {
     _emailController.dispose();

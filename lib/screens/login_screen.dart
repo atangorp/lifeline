@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lifeline/screens/home_screen.dart'; // Pastikan import ini ada
 
 class LoginScreen extends StatefulWidget {
   final Function()? onTap;
@@ -13,34 +14,52 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordObscured = true;
-  // 1. Tambahkan kembali state _isLoading
   bool _isLoading = false;
 
-  // 2. Di dalam _login(), gunakan setState untuk mengontrol _isLoading
   Future<void> _login() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
 
     try {
+      // Proses login
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Jika berhasil, AuthGate akan menangani navigasi.
-      // Kita tidak perlu menghentikan loading karena halaman ini akan diganti.
+
+      // --- INI BAGIAN PENTING YANG PERLU DITAMBAHKAN ---
+      // Setelah login berhasil, langsung paksa pindah ke HomeScreen
+      // dan hapus semua halaman sebelumnya.
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(
+              email: _emailController.text.trim(),
+            ),
+          ),
+          (route) => false,
+        );
+      }
+      // --- BATAS BAGIAN PENTING ---
+
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login Gagal: Email atau password salah.')),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-
+  
   @override
   void dispose() {
     _emailController.dispose();
@@ -86,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // 3. Di dalam build(), ganti tombol dengan CircularProgressIndicator berdasarkan _isLoading
             _isLoading
                 ? const CircularProgressIndicator()
                 : SizedBox(

@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lifeline/login_or_register.dart';
-import 'package:lifeline/screens/home_screen.dart';
+// import 'package:lifeline/screens/home_screen.txt';
+import 'package:lifeline/screens/main_layout.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -16,19 +17,18 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkAuthStatus();
   }
 
+  // Di dalam file splash_screen.dart
   Future<void> _checkAuthStatus() async {
-    // Beri jeda singkat agar Flutter siap
     await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
-    // Periksa apakah ada pengguna yang sedang login
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // Jika ada, langsung ke HomeScreen
+      // Jika ada, langsung ke MainLayout TANPA mengirim email
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => HomeScreen(email: user.email!),
+        builder: (context) => const MainLayout(),
       ));
     } else {
       // Jika tidak ada, ke halaman Login/Register

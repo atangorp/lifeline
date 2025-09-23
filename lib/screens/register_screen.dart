@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:lifeline/screens/home_screen.dart'; // Pastikan import ini ada
+// 1. GANTI import HomeScreen menjadi MainLayout
+import 'package:lifeline/screens/main_layout.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Function()? onTap;
@@ -11,6 +13,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _nameController = TextEditingController();
+  final _bloodTypeController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordObscured = true;
@@ -18,26 +22,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (!mounted) return;
+    // Validasi tambahan untuk memastikan field tidak kosong
+    if (_nameController.text.isEmpty || _bloodTypeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nama dan Golongan Darah tidak boleh kosong.')),
+      );
+      return;
+    }
+    
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // >> TAMBAHKAN NAVIGASI MANUAL DI SINI JUGA <<
-      // Setelah daftar berhasil, pengguna otomatis login.
-      // Langsung paksa pindah ke HomeScreen.
+      if (userCredential.user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'nama': _nameController.text.trim(),
+          'gol_darah': _bloodTypeController.text.trim().toUpperCase(),
+          'email': _emailController.text.trim(),
+          'uid': userCredential.user!.uid,
+          'tanggal_donor_terakhir': null,
+          'poin': 0,
+          'level': 'Rekrutan',
+          'drs': 10,
+        });
+      }
+
       if (mounted) {
+        // 2. GANTI tujuan navigasi ke MainLayout()
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => HomeScreen(
-              email: _emailController.text.trim(),
-            ),
+            builder: (context) => const MainLayout(),
           ),
           (route) => false,
         );
@@ -57,9 +78,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
   
-  // ... sisa kode build() dan dispose() tetap sama persis ...
   @override
   void dispose() {
+    _nameController.dispose();
+    _bloodTypeController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -71,40 +93,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text('Daftar Akun Baru')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
           children: [
+            const SizedBox(height: 20),
             const Icon(Icons.person_add, size: 60, color: Colors.red),
             const SizedBox(height: 20),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Nama Lengkap', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16),
-            TextField(
+            TextFormField(
+              controller: _bloodTypeController,
+              decoration: const InputDecoration(labelText: 'Golongan Darah (Contoh: A+, O-)', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
               controller: _passwordController,
               obscureText: _isPasswordObscured,
               decoration: InputDecoration(
                 labelText: 'Password (min. 6 karakter)',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: Icon(_isPasswordObscured
-                      ? Icons.visibility_off
-                      : Icons.visibility),
+                  icon: Icon(_isPasswordObscured ? Icons.visibility_off : Icons.visibility),
                   onPressed: () {
-                    setState(() {
-                      _isPasswordObscured = !_isPasswordObscured;
-                    });
+                    setState(() { _isPasswordObscured = !_isPasswordObscured; });
                   },
                 ),
               ),
             ),
             const SizedBox(height: 24),
             _isLoading
-                ? const CircularProgressIndicator()
+                ? const Center(child: CircularProgressIndicator())
                 : SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -112,13 +137,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red[800],
                           padding: const EdgeInsets.symmetric(vertical: 16)),
-                      child:
-                          const Text('Daftar', style: TextStyle(color: Colors.white)),
+                      child: const Text('Daftar', style: TextStyle(color: Colors.white)),
                     ),
                   ),
             const SizedBox(height: 10),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center, // <-- BENAR
               children: [
                 const Text('Sudah punya akun?'),
                 TextButton(

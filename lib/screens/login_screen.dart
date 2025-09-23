@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:lifeline/screens/home_screen.dart'; // Pastikan import ini ada
+// import 'package:lifeline/screens/home_screen.txt'; // Pastikan import ini ada
+import 'package:lifeline/screens/main_layout.dart';
 
 class LoginScreen extends StatefulWidget {
   final Function()? onTap;
@@ -16,36 +17,26 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordObscured = true;
   bool _isLoading = false;
 
+  // Di dalam file login_screen.dart
   Future<void> _login() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-    });
-
+    // ... (kode loading, try, await tetap sama)
     try {
-      // Proses login
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // --- INI BAGIAN PENTING YANG PERLU DITAMBAHKAN ---
-      // Setelah login berhasil, langsung paksa pindah ke HomeScreen
-      // dan hapus semua halaman sebelumnya.
       if (mounted) {
+        // Langsung ke MainLayout TANPA mengirim email
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(
-              email: _emailController.text.trim(),
-            ),
-          ),
+          MaterialPageRoute(builder: (context) => const MainLayout()),
           (route) => false,
         );
       }
-      // --- BATAS BAGIAN PENTING ---
+    } 
 
-    } on FirebaseAuthException catch (e) {
+      on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login Gagal: Email atau password salah.')),

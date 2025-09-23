@@ -2,42 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lifeline/screens/add_need_screen.dart';
 import 'package:lifeline/screens/detail_screen.dart';
-import 'package:lifeline/screens/login_screen.dart';
-import 'package:lifeline/login_or_register.dart' ;
+import 'package:lifeline/screens/main_layout.dart';
 
-class HomeScreen extends StatefulWidget {
-  final String email;
-  const HomeScreen({super.key, required this.email});
+class RequestsScreen extends StatefulWidget {
+  const RequestsScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<RequestsScreen> createState() => _RequestsScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _RequestsScreenState extends State<RequestsScreen> {
   String _username = '';
   String _searchQuery = '';
 
-  @override
-  void initState() {
-    _extractUsername();
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   _extractUsername();
+  //   super.initState();
+  // }
 
-  void _extractUsername() {
-    if (widget.email.contains('@')) {
-      var name = widget.email.split('@')[0];
-      _username = name[0].toUpperCase() + name.substring(1);
-    } else {
-      _username = widget.email;
-    }
-  }
+  // void _extractUsername() {
+  //   if (widget.email.contains('@')) {
+  //     var name = widget.email.split('@')[0];
+  //     _username = name[0].toUpperCase() + name.substring(1);
+  //   } else {
+  //     _username = widget.email;
+  //   }
+  // }
 
-  void _logout() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginOrRegisterPage()), // <-- DIUBAH
-      (Route<dynamic> route) => false,
-    );
-  }
 
   // 1. Buat fungsi untuk menghapus dokumen di Firestore
   Future<void> _deleteItem(String docId) async {
@@ -64,29 +56,22 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Kebutuhan Darah (Online)'),
         backgroundColor: Colors.red[800],
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: _logout,
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 4.0, bottom: 10.0),
-              child: Text(
-                'Halo, Selamat Datang $_username',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(left: 4.0, bottom: 10.0),
+            //   child: Text(
+            //     'Halo, Selamat Datang $_username',
+            //     style: const TextStyle(
+            //       fontSize: 18,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
             TextField(
               onChanged: (value) {
                 setState(() {

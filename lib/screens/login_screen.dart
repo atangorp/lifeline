@@ -13,27 +13,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordObscured = true;
+  // 1. Tambahkan kembali state _isLoading
+  bool _isLoading = false;
 
+  // 2. Di dalam _login(), gunakan setState untuk mengontrol _isLoading
   Future<void> _login() async {
-    // 1. Tampilkan dialog loading
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Pengguna tidak bisa menutup dialog ini
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // 2. Jika berhasil, tutup dialog loading
-      if (mounted) Navigator.pop(context);
+      // Jika berhasil, AuthGate akan menangani navigasi.
+      // Kita tidak perlu menghentikan loading karena halaman ini akan diganti.
     } on FirebaseAuthException catch (e) {
-      // 3. Jika gagal, tutup juga dialog loading
-      if (mounted) Navigator.pop(context);
-      // Lalu tampilkan pesan error
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login Gagal: Email atau password salah.')),
         );
@@ -86,16 +86,19 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _login,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[800],
-                    padding: const EdgeInsets.symmetric(vertical: 16)),
-                child: const Text('Login', style: TextStyle(color: Colors.white)),
-              ),
-            ),
+            // 3. Di dalam build(), ganti tombol dengan CircularProgressIndicator berdasarkan _isLoading
+            _isLoading
+                ? const CircularProgressIndicator()
+                : SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[800],
+                          padding: const EdgeInsets.symmetric(vertical: 16)),
+                      child: const Text('Login', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

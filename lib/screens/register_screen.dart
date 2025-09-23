@@ -13,7 +13,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordObscured = true;
-  bool _isLoading = false; // Tambahkan state untuk loading
+  bool _isLoading = false;
 
   Future<void> _register() async {
     setState(() {
@@ -22,28 +22,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
-      // Jika berhasil, AuthGate akan menangani navigasi.
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        // Tampilkan pesan error yang lebih spesifik
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Registrasi Gagal: ${e.message}')),
         );
       }
     }
   }
-
+  
   @override
   void dispose() {
     _emailController.dispose();
@@ -89,7 +82,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // Ganti tombol dengan loading indicator jika sedang loading
             _isLoading
                 ? const CircularProgressIndicator()
                 : SizedBox(
@@ -99,7 +91,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red[800],
                           padding: const EdgeInsets.symmetric(vertical: 16)),
-                      child: const Text('Daftar', style: TextStyle(color: Colors.white)),
+                      child:
+                          const Text('Daftar', style: TextStyle(color: Colors.white)),
                     ),
                   ),
             const SizedBox(height: 10),

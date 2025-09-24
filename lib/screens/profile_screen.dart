@@ -64,64 +64,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _showEditProfileDialog(Map<String, dynamic> currentData) async {
-    final nameController = TextEditingController(text: currentData['nama']);
-    DateTime? selectedDate = (currentData['tanggal_donor_terakhir'] as Timestamp?)?.toDate();
+// Di dalam file profile_screen.dart
 
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Edit Profil'),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Nama Lengkap'),
-                    ),
-                    const SizedBox(height: 20),
-                    Text('Tanggal Donor Terakhir: ${selectedDate == null ? 'Belum diatur' : DateFormat('dd MMMM yyyy').format(selectedDate!)}'),
-                    ElevatedButton(
-                      child: const Text('Pilih Tanggal'),
-                      onPressed: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate ?? DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null && picked != selectedDate) {
-                          setState(() {
-                            selectedDate = picked;
-                          });
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
+Future<void> _showEditProfileDialog(Map<String, dynamic> currentData) async {
+  final nameController = TextEditingController(text: currentData['nama']);
+  DateTime? selectedDate = (currentData['tanggal_donor_terakhir'] as Timestamp?)?.toDate();
+  bool isSaving = false; // State loading untuk dialog
+
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false, // Mencegah dialog ditutup saat loading
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Edit Profil'),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Tanggal Donor Terakhir: ${selectedDate == null ? 'Belum diatur' : DateFormat('dd MMMM yyyy').format(selectedDate!)}'),
+                  ElevatedButton(
+                    child: const Text('Pilih Tanggal'),
+                    onPressed: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null && picked != selectedDate) {
+                        setState(() {
+                          selectedDate = picked;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Batal'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text('Simpan'),
-              onPressed: () async {
-                await _updateProfileData(nameController.text, selectedDate);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+          // Ganti TextButton menjadi ElevatedButton untuk menampilkan loading
+          StatefulBuilder(
+            builder: (context, setState) {
+              return ElevatedButton(
+                child: isSaving ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Simpan'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red[800], foregroundColor: Colors.white),
+                onPressed: isSaving ? null : () async {
+                  setState(() { isSaving = true; });
+                  await _updateProfileData(nameController.text, selectedDate);
+                  if (mounted) {
+                    Navigator.of(context).pop(); // Tutup dialog setelah berhasil
+                  }
+                },
+              );
+            }
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Future<void> _updateProfileData(String newName, DateTime? newDate) async {
     int newDrs = 10;
@@ -148,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil Saya'),
+        title: const Text('Profil Pahlawan Darah'),
         backgroundColor: Colors.red[800],
         foregroundColor: Colors.white,
         actions: [
@@ -185,17 +198,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(userData['nama'] ?? 'Nama Pengguna', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 8),
-                Text(userData['email'] ?? 'Tidak ada email', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Center(
-                  child: Chip(
-                    label: Text('Gol. Darah: ${userData['gol_darah'] ?? '?'}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    backgroundColor: Colors.red[100],
+                Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shadowColor: Colors.red[200],
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    gradient: LinearGradient(
+                      colors: [Colors.red[700]!, Colors.red[900]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("KARTU PAHLAWAN DARAH", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          Icon(Icons.bloodtype, color: Colors.white, size: 28),
+                        ],
+                      ),
+                      const SizedBox(height: 25),
+                      Text(
+                        userData['nama'] ?? 'Nama Pengguna',
+                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Golongan Darah: ${userData['gol_darah'] ?? '?'}",
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      const SizedBox(height: 25),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "ID: ${widget.currentUser!.uid.substring(0, 8).toUpperCase()}",
+                            style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'),
+                          ),
+                          Text(
+                            userData['level'] ?? 'Rekrutan',
+                            style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      )
+                    ],
                   ),
                 ),
-                const Divider(height: 30),
+              ),
+                const Divider(height: 40),
                 ListTile(
                   leading: const Icon(Icons.star_border, color: Colors.amber),
                   title: const Text('Poin'),

@@ -5,6 +5,8 @@
         android:label="lifeline"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data android:name="com.google.android.geo.API_KEY"
+           android:value="AIzaSyA8Td9CqbvN0ZJaP7dBgpWr3962zLJY_3c"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

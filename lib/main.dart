@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:lifeline/screens/splash_screen.dart'; // <-- Kembali ke Splash Screen
+import 'package:lifeline/screens/splash_screen.dart'; // <-- Menggunakan SplashScreen
 import 'package:lifeline/api/firebase_api.dart';
+import 'package:intl/date_symbol_data_local.dart'; // <-- Import untuk tanggal
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // 2. Panggil inisialisasi notifikasi
   await FirebaseApi().initNotifications();
+
+  // Inisialisasi untuk format tanggal (ini tetap diperlukan)
+  await initializeDateFormatting('id_ID', null);
 
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -27,7 +29,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: SplashScreen(), // <-- Kembali ke Splash Screen
+      home: SplashScreen(), // <-- Menggunakan SplashScreen, bukan AuthGate
       debugShowCheckedModeBanner: false,
     );
   }

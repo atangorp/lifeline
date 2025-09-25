@@ -41,6 +41,8 @@ dependencies:
   geolocator: ^14.0.2
   firebase_messaging: ^16.0.2
   google_maps_flutter: ^2.13.1
+  flutter_animate: ^4.5.2
+  google_fonts: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -94,3 +96,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+
+ 
+
+  # Untuk menambahkan aset ke aplikasi Anda, tambahkan sebuah "aset" di sini.
+  # Aset dapat berupa gambar, musik, font, atau lainnya.
+  # Contoh:
+  assets:
+    - assets/images/  # <-- PASTIKAN BARIS INI ADA DAN INDENTASINYA BENAR
+    # - images/a_dot_burr.jpeg
+    # - images/a_dot_ham.jpeg

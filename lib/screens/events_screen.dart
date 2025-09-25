@@ -4,6 +4,7 @@ import 'package:intl/intl.dart'; // Jangan lupa import intl
 import 'event_detail_screen.dart';
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+// ...existing imports
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -18,7 +19,8 @@ class _EventsScreenState extends State<EventsScreen> {
     target: LatLng(-2.5489, 118.0149), // Posisi tengah Indonesia
     zoom: 4.5,
   );
-    Future<void> _goToLocation(GeoPoint location) async {
+   // CUKUP ADA SATU FUNGSI INI
+  Future<void> _goToLocation(GeoPoint location) async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
@@ -27,24 +29,16 @@ class _EventsScreenState extends State<EventsScreen> {
       ),
     ));
   }
-    // Fungsi untuk menggerakkan kamera peta ke lokasi tertentu
-  Future<void> _goToLocation(GeoPoint location) async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(
-        target: LatLng(location.latitude, location.longitude),
-        zoom: 14.0, // Zoom lebih dekat
-      ),
-    ));
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Peta Event Donor Darah'),
+ title: Image.asset('assets/images/app_logo.png', height: 35),
+centerTitle: true, // Agar logo di tengah
         backgroundColor: Colors.red[800],
         foregroundColor: Colors.white,
       ),
+      
 // Ganti seluruh body dengan ini
 body: StreamBuilder<QuerySnapshot>(
   stream: FirebaseFirestore.instance
@@ -81,6 +75,20 @@ body: StreamBuilder<QuerySnapshot>(
       }
     }
 
+              // Animasi kamera ke event pertama saat peta pertama kali dimuat
+          if (events.isNotEmpty) {
+            // Ambil data lokasi dari event pertama dalam daftar
+            final firstEventData = events.first.data() as Map<String, dynamic>;
+            final GeoPoint? firstEventLocation = firstEventData['lokasi_koordinat'];
+
+            if (firstEventLocation != null) {
+              // Panggil fungsi setelah frame pertama selesai di-render untuk menghindari error
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                 _goToLocation(firstEventLocation);
+              });
+            }
+          }
+
     return Column(
       children: [
         // Bagian Peta
@@ -110,20 +118,18 @@ body: StreamBuilder<QuerySnapshot>(
               final DateTime date = timestamp.toDate();
               final String formattedDate = DateFormat('dd MMMM yyyy').format(date);
 
+
+
               return InkWell(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => EventDetailScreen(eventData: data),
-                    ),
-                  );
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => EventDetailScreen(eventData: data),
+                  ));
                 },
                 child: Card(
                   elevation: 4,
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(

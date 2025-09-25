@@ -4,6 +4,8 @@ import 'firebase_options.dart';
 import 'package:lifeline/screens/splash_screen.dart'; // <-- Menggunakan SplashScreen
 import 'package:lifeline/api/firebase_api.dart';
 import 'package:intl/date_symbol_data_local.dart'; // <-- Import untuk tanggal
+import 'package:lifeline/theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,3 +36,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

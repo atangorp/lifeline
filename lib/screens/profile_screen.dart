@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lifeline/login_or_register.dart';
 import 'package:geolocator/geolocator.dart';
 
+
 class ProfileScreen extends StatefulWidget {
   final User? currentUser;
   const ProfileScreen({super.key, this.currentUser});
@@ -161,7 +162,14 @@ Future<void> _showEditProfileDialog(Map<String, dynamic> currentData) async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil Pahlawan Darah'),
+        title: Row(
+          children: [
+            Image.asset('assets/images/app_logo.png', height: 25), // Logo kecil
+            const SizedBox(width: 8),
+            const Text('Profil Saya'),
+          ],
+        ),
+        centerTitle: false,
         backgroundColor: Colors.red[800],
         foregroundColor: Colors.white,
         actions: [
@@ -180,8 +188,12 @@ Future<void> _showEditProfileDialog(Map<String, dynamic> currentData) async {
           ),
         ],
       ),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: FirebaseFirestore.instance.collection('users').doc(widget.currentUser?.uid).get(),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        // 'stream' akan terus "mendengarkan" perubahan pada dokumen user
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.currentUser?.uid)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

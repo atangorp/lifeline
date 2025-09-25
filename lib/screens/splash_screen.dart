@@ -6,11 +6,13 @@ import 'package:lifeline/login_or_register.dart';
 import 'package:lifeline/screens/main_layout.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
@@ -42,18 +44,16 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     // UI Splash Screen tidak berubah
     return Scaffold(
-      backgroundColor: Colors.red[800],
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255), // or your preferred color
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.bloodtype, size: 80, color: Colors.white),
-            const SizedBox(height: 20),
-            const Text('LifeLine', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
+            Image.asset('assets/images/app_logo.png', width: 225), // Logo Anda
             const SizedBox(height: 40),
-            const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-            const SizedBox(height: 20),
-            const Text('Dibuat oleh: Fathan', style: TextStyle(fontSize: 14, color: Colors.white70)),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 186, 186, 186)),
+            ),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
 
 class AddNeedScreen extends StatefulWidget {
   const AddNeedScreen({super.key});
@@ -11,28 +12,40 @@ class AddNeedScreen extends StatefulWidget {
 
 class _AddNeedScreenState extends State<AddNeedScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _titleController = TextEditingController();
   final _bloodTypeController = TextEditingController();
   final _locationController = TextEditingController();
   final _contactPhoneController = TextEditingController();
   final _descriptionController = TextEditingController();
+
   bool _isLoading = false;
 
   Future<void> _submitRequest() async {
     if (_formKey.currentState!.validate()) {
-      setState(() { _isLoading = true; });
+      setState(() {
+        _isLoading = true;
+      });
 
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Anda harus login untuk membuat permintaan.')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Anda harus login untuk membuat permintaan.')),
+          );
+        }
         setState(() { _isLoading = false; });
         return;
       }
 
       try {
-        // --- Bagian 1: Simpan Permintaan Darah (Kode Lama) ---
+        Position? currentPosition;
+        try {
+          currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        } catch (e) {
+          print("Tidak bisa mendapatkan lokasi: $e");
+        }
+
         final Map<String, dynamic> newRequest = {
           'judul': _titleController.text,
           'gol_darah': _bloodTypeController.text.toUpperCase(),
@@ -42,43 +55,26 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
           'status': 'Mencari',
           'requester_uid': currentUser.uid,
           'timestamp': FieldValue.serverTimestamp(),
+          if (currentPosition != null)
+            'lokasi_koordinat': GeoPoint(currentPosition.latitude, currentPosition.longitude),
         };
+
         await FirebaseFirestore.instance.collection('blood_requests').add(newRequest);
 
-        // --- Bagian 2: Logika Gamifikasi (Kode Baru) ---
-        // Ambil data profil pengguna saat ini
-        final userDocRef = FirebaseFirestore.instance.collection('users').doc(currentUser.uid);
-        final userDoc = await userDocRef.get();
-
-        if (userDoc.exists) {
-          final currentPoints = userDoc.data()?['poin'] ?? 0;
-          final newPoints = currentPoints + 50; // Tambah 50 poin untuk setiap permintaan
-
-          String newLevel = userDoc.data()?['level'] ?? 'Rekrutan';
-          // Logika sederhana untuk naik level
-          if (newPoints >= 200) {
-            newLevel = 'Prajurit';
-          }
-          
-          // Update profil pengguna dengan poin dan level baru
-          await userDocRef.update({
-            'poin': newPoints,
-            'level': newLevel,
-          });
-        }
-        
         if (mounted) {
           Navigator.of(context).pop();
         }
       } catch (error) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal: $error')),
+            SnackBar(content: Text('Gagal mengirim permintaan: $error')),
           );
         }
       } finally {
         if (mounted) {
-          setState(() { _isLoading = false; });
+          setState(() {
+            _isLoading = false;
+          });
         }
       }
     }
@@ -86,13 +82,16 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
 
   @override
   void dispose() {
-    // ... dispose controllers ...
+    _titleController.dispose();
+    _bloodTypeController.dispose();
+    _locationController.dispose();
+    _contactPhoneController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // ... UI tetap sama persis seperti sebelumnya ...
     return Scaffold(
       appBar: AppBar(
         title: const Text('Buat Permintaan Darah'),
@@ -110,24 +109,30 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
                 decoration: const InputDecoration(labelText: 'Judul Permintaan (Cth: Butuh Darah untuk Nenek)'),
                 validator: (value) => value!.isEmpty ? 'Judul tidak boleh kosong' : null,
               ),
+              const SizedBox(height: 10),
               TextFormField(
                 controller: _bloodTypeController,
-                decoration: const InputDecoration(labelText: 'Golongan Darah'),
+                decoration: const InputDecoration(labelText: 'Golongan Darah (Cth: A+, B-)'),
                 validator: (value) => value!.isEmpty ? 'Golongan darah tidak boleh kosong' : null,
               ),
-               TextFormField(
+              const SizedBox(height: 10),
+              TextFormField(
                 controller: _locationController,
-                decoration: const InputDecoration(labelText: 'Lokasi RS'),
+                decoration: const InputDecoration(labelText: 'Nama & Kota Rumah Sakit'),
                 validator: (value) => value!.isEmpty ? 'Lokasi tidak boleh kosong' : null,
               ),
-               TextFormField(
+              const SizedBox(height: 10),
+              TextFormField(
                 controller: _contactPhoneController,
                 decoration: const InputDecoration(labelText: 'Telepon Kontak'),
+                keyboardType: TextInputType.phone,
                 validator: (value) => value!.isEmpty ? 'Telepon tidak boleh kosong' : null,
               ),
-               TextFormField(
+              const SizedBox(height: 10),
+              TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Deskripsi'),
+                decoration: const InputDecoration(labelText: 'Deskripsi Singkat'),
+                maxLines: 3,
                 validator: (value) => value!.isEmpty ? 'Deskripsi tidak boleh kosong' : null,
               ),
               const SizedBox(height: 20),
